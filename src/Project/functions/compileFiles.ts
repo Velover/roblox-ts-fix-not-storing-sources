@@ -101,7 +101,6 @@ export function compileFiles(
 
 	LogService.writeLineIfVerbose(`compiling as ${projectType}..`);
 
-	const fileWriteQueue = new Array<{ sourceFile: ts.SourceFile; source: string }>();
 	const progressMaxLength = `${sourceFiles.length}/${sourceFiles.length}`.length;
 
 	let proxyProgram = program;
@@ -148,63 +147,70 @@ export function compileFiles(
 	const typeChecker = proxyProgram.getTypeChecker();
 	const services = createTransformServices(typeChecker);
 
-	for (let i = 0; i < sourceFiles.length; i++) {
-		const sourceFile = proxyProgram.getSourceFile(sourceFiles[i].fileName);
-		assert(sourceFile);
-		const progress = `${i + 1}/${sourceFiles.length}`.padStart(progressMaxLength);
-		benchmarkIfVerbose(`${progress} compile ${path.relative(process.cwd(), sourceFile.fileName)}`, () => {
-			DiagnosticService.addDiagnostics(ts.getPreEmitDiagnostics(proxyProgram, sourceFile));
-			DiagnosticService.addDiagnostics(getCustomPreEmitDiagnostics(data, sourceFile));
-			if (DiagnosticService.hasErrors()) return;
+	const files = new Array<string>();
 
-			const transformState = new TransformState(
-				proxyProgram,
-				data,
-				services,
-				pathTranslator,
-				multiTransformState,
-				compilerOptions,
-				rojoResolver,
-				pkgRojoResolvers,
-				nodeModulesPathMapping,
-				runtimeLibRbxPath,
-				typeChecker,
-				projectType,
-				sourceFile,
-			);
-
-			const luauAST = transformSourceFile(transformState, sourceFile);
-			if (DiagnosticService.hasErrors()) return;
-
-			const source = renderAST(luauAST);
-
-			fileWriteQueue.push({ sourceFile, source });
-		});
-	}
-
-	if (DiagnosticService.hasErrors()) return { emitSkipped: true, diagnostics: DiagnosticService.flush() };
-
+	const afterDeclarations = compilerOptions.declaration
+		? [transformTypeReferenceDirectives, transformPathsTransformer(program, {})]
+		: undefined;
 	const emittedFiles = new Array<string>();
-	if (fileWriteQueue.length > 0) {
-		benchmarkIfVerbose("writing compiled files", () => {
-			const afterDeclarations = compilerOptions.declaration
-				? [transformTypeReferenceDirectives, transformPathsTransformer(program, {})]
-				: undefined;
-			for (const { sourceFile, source } of fileWriteQueue) {
+
+	fs.removeSync(pathTranslator.outDir + "_temp");
+
+	benchmarkIfVerbose("Compiling\n", () => {
+		for (let i = 0; i < sourceFiles.length; i++) {
+			const sourceFile = proxyProgram.getSourceFile(sourceFiles[i].fileName);
+			assert(sourceFile);
+			const progress = `${i + 1}/${sourceFiles.length}`.padStart(progressMaxLength);
+			benchmarkIfVerbose(`${progress} compile ${path.relative(process.cwd(), sourceFile.fileName)}`, () => {
+				DiagnosticService.addDiagnostics(ts.getPreEmitDiagnostics(proxyProgram, sourceFile));
+				DiagnosticService.addDiagnostics(getCustomPreEmitDiagnostics(data, sourceFile));
+				if (DiagnosticService.hasErrors()) return;
+
+				const transformState = new TransformState(
+					proxyProgram,
+					data,
+					services,
+					pathTranslator,
+					multiTransformState,
+					compilerOptions,
+					rojoResolver,
+					pkgRojoResolvers,
+					nodeModulesPathMapping,
+					runtimeLibRbxPath,
+					typeChecker,
+					projectType,
+					sourceFile,
+				);
+
+				const luauAST = transformSourceFile(transformState, sourceFile);
+				if (DiagnosticService.hasErrors()) return;
+
 				const outPath = pathTranslator.getOutputPath(sourceFile.fileName);
+				const tempOutPath = outPath.replace("\\out\\", "\\out_temp\\");
+				const source = renderAST(luauAST);
+
 				if (
 					!data.projectOptions.writeOnlyChanged ||
 					!fs.pathExistsSync(outPath) ||
 					fs.readFileSync(outPath).toString() !== source
 				) {
-					fs.outputFileSync(outPath, source);
-					emittedFiles.push(outPath);
+					fs.outputFileSync(tempOutPath, source);
+					emittedFiles.push(tempOutPath);
+					files.push(tempOutPath);
 				}
+
 				if (compilerOptions.declaration) {
 					proxyProgram.emit(sourceFile, ts.sys.writeFile, undefined, true, { afterDeclarations });
 				}
-			}
-		});
+			});
+		}
+	});
+
+	if (DiagnosticService.hasErrors()) return { emitSkipped: true, diagnostics: DiagnosticService.flush() };
+
+	for (const file of files) {
+		const outPath = file.replace("\\out_temp\\", "\\out\\");
+		fs.copyFileSync(file, outPath);
 	}
 
 	program.emitBuildInfo();
