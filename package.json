@@ -11,17 +11,17 @@
 		"rbxtsc": "out/CLI/cli.js"
 	},
 	"scripts": {
-		"prepublishOnly": "npm run build",
+		"prepublishOnly": "bun run build",
 		"build": "tspc -b",
 		"build-watch": "tspc -b -w",
 		"eslint": "eslint --flag unstable_ts_config --max-warnings 0",
-		"devlink": "npm run build && cd devlink && npm link",
-		"update-test-types": "cd tests && npm install github:roblox-ts/compiler-types @rbxts/types@latest && npm install",
-		"test": "npm run build && npm run test-compile && npm run test-rojo && npm run test-run",
+		"devlink": "bun run build && cd devlink && bun link",
+		"update-test-types": "cd tests && bun install github:roblox-ts/compiler-types @rbxts/types@latest && bun install",
+		"test": "bun run build && bun run test-compile && bun run test-rojo && bun run test-run",
 		"test-compile": "nyc mocha --timeout 0 --recursive out/CLI/test.js",
 		"test-rojo": "rojo build tests -o ./tests/test.rbxl",
 		"test-run": "lune run ./tests/runTestsWithLune.lua ./tests/test.rbxl",
-		"test-roblox": "npm run build && npm run test-compile && npm run test-rojo && npm run run-in-roblox",
+		"test-roblox": "bun run build && bun run test-compile && bun run test-rojo && bun run run-in-roblox",
 		"run-in-roblox": "run-in-roblox --place ./tests/test.rbxl --script ./tests/out/main.server.lua"
 	},
 	"nyc": {

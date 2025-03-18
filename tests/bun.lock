@@ -1,0 +1,26 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "tests",
+      "dependencies": {
+        "@rbxts/compiler-types": "^3.0.0-types.0",
+        "@rbxts/roact": "^3.0.1",
+        "@rbxts/services": "^1.5.5",
+        "@rbxts/testez": "^0.4.2-ts.0",
+        "@rbxts/types": "^1.0.842",
+      },
+    },
+  },
+  "packages": {
+    "@rbxts/compiler-types": ["@rbxts/compiler-types@3.0.0-types.0", "", {}, "sha512-VGOHJPoL7+56NTatMGqQj3K7xWuzEV+aP4QD5vZiHu+bcff3kiTmtoadaF6NkJrmwfFAvbsd4Dg764ZjWNceag=="],
+
+    "@rbxts/roact": ["@rbxts/roact@3.0.1", "", {}, "sha512-1RVGy8PL078pXdrrYboiKftMKqB4YgYd4Sh/M3aWkhY2TKBBL+hlT1Om35cmCn8sKzdzQwzf2CbmcU49lHoNuw=="],
+
+    "@rbxts/services": ["@rbxts/services@1.5.5", "", {}, "sha512-Hu7QH2ecefS60zpakKG3T2vgABydoOJqpSG7nXr59wFAbPk/cA+OcsntYPHUWyHAat0VFGZ5jNZLTLdiqfssvg=="],
+
+    "@rbxts/testez": ["@rbxts/testez@0.4.2-ts.0", "", {}, "sha512-8Q+OG9ddTD2P3aARCuRKpPqUBvuifgSnHvQMZ6jBMqUzxhIysnb0l4c3vnnaQnvdyZ1OW9tKxcdEHMGTb67uOw=="],
+
+    "@rbxts/types": ["@rbxts/types@1.0.842", "", {}, "sha512-SKwbHIv+rFSK286nU4t0UL1X5rpWdguREDg0YASrKgYJ99neE8Vyv0AeNVym/ZNJ+7n5VRkJG0Rtiako4dyK8w=="],
+  }
+}
