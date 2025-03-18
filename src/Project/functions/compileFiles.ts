@@ -154,7 +154,8 @@ export function compileFiles(
 		: undefined;
 	const emittedFiles = new Array<string>();
 
-	fs.removeSync(pathTranslator.outDir + "_temp");
+	const outTempDir = pathTranslator.outDir + "_temp";
+	fs.removeSync(outTempDir);
 
 	benchmarkIfVerbose("Compiling\n", () => {
 		for (let i = 0; i < sourceFiles.length; i++) {
@@ -212,6 +213,8 @@ export function compileFiles(
 		const outPath = file.replace("\\out_temp\\", "\\out\\");
 		fs.copyFileSync(file, outPath);
 	}
+
+	fs.removeSync(outTempDir);
 
 	program.emitBuildInfo();
 
